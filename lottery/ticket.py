@@ -1,5 +1,32 @@
-import requests
+"""
+用法：
+print(get_history('双色球', count=1))
 
+输出格式大致如下，差异在result部分，要么为dict，要么为list
+[
+    {
+        'date': datetime.date(2018, 7, 12),
+        'result': {
+            'red': [4,7,13,20,29,33],
+            'blue': 3
+        },
+        'grades': [
+            {'num': 6,       'money': 8230212},
+            {'num': 128,     'money': 189270},
+            {'num': 1015,    'money': 3000},
+            {'num': 56290,   'money': 200},
+            {'num': 1090402, 'money': 10},
+            {'num': 7457743, 'money': 5},
+            {'num': 0,       'money': 0}
+        ]
+    }
+]
+"""
+import requests
+import datetime
+
+
+_str2date = lambda s,f: datetime.datetime.strptime(s, f).date()
 
 def _get_cwl_history(_type, count=30):
     name = {'3D':'3d', '双色球':'ssq', '七乐彩':'qlc'}
@@ -20,9 +47,43 @@ def _get_cwl_history(_type, count=30):
         'Accept': 'application/json',
         'Referer': 'http://www.cwl.gov.cn/kjxx/',
     }
-    
+
     r = requests.get(url=url, params=payload, headers=headers)
-    return r.json()
+
+    historys = []
+    for one in r.json()['result']:
+        history = {'date': _str2date(one['date'][:10], '%Y-%m-%d')}
+
+        if name[_type] is 'ssq':
+            red = [int(r) for r in one['red'].split(',')]
+            blue = int(one['blue'])
+            history['result'] = {'red': red, 'blue': blue}
+        elif  name[_type] is 'qlc':
+            red = [int(r) for r in one['red'].split(',')]
+            blue = int(one['blue'])
+            history['result'] = {'red': red, 'blue': blue}
+        elif  name[_type] is '3d':
+            red = [int(r) for r in one['red'].split(',')]
+            history['result'] = red
+
+        history['grades'] = []
+        for prizegrade in one['prizegrades']:
+            grade = {}
+            try:
+                grade['num'] = int(prizegrade['typenum'])
+            except ValueError:
+                grade['num'] = 0
+
+            try:
+                grade['money'] = int(prizegrade['typemoney'])
+            except ValueError:
+                grade['money'] = 0
+
+            history['grades'].append(grade)
+
+        historys.append(history)
+
+    return historys
 
 def _get_lottery_history(_type, count=30):
     name = {'七星彩':'qxc', '大乐透':'dlt', '排列五':'plw', '排列三':'pls'}
