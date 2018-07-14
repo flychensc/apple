@@ -15,4 +15,4 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>>
 ```
 
-![输出格式](./doc/images/output_format.png)
+![output](./doc/images/output_format.PNG)
