@@ -25,6 +25,8 @@ print(get_history('双色球', count=1))
 import requests
 import datetime
 
+from bs4 import BeautifulSoup
+
 
 _str2date = lambda s,f: datetime.datetime.strptime(s, f).date()
 
@@ -99,7 +101,48 @@ def _get_lottery_history(_type, count=30):
 
     url = 'http://www.lottery.gov.cn/historykj/history.jspx'
     r = requests.get(url=url, params=payload)
-    return r.text
+
+    soup = BeautifulSoup(r.text, 'lxml')
+    result = soup.find('div', 'result')
+
+    historys = []
+    for one in result.find_all('tr'):
+        datas = one.find_all('td')
+        if datas is None or len(datas) < 3:
+            continue
+
+        history = {'date': _str2date(datas[-1].text, '%Y-%m-%d')}
+
+        if name[_type] is 'qxc':
+            history['result'] = [int(i) for i in datas[1].text]
+            grades_start = 2
+            grades_end = -4
+        elif  name[_type] is 'dlt':
+            red = [int(r.text) for r in datas[1:6]]
+            blue = [int(b.text) for b in datas[6:8]]
+            history['result'] = {'red': red, 'blue': blue}
+            grades_start = 8
+            grades_end = -4
+        elif  name[_type] is 'plw':
+            history['result'] = [int(i) for i in datas[1].text.split()]
+            grades_start = 2
+            grades_end = -4
+        elif  name[_type] is 'pls':
+            history['result'] = [int(i) for i in datas[1].text.split()]
+            grades_start = 2
+            grades_end = -3
+
+        history['grades'] = []
+        for idx in range(grades_start, grades_start+len(datas[grades_start:grades_end]), 2):
+            grade = {}
+
+            grade['num'] = int(datas[idx].text.replace(',',''))
+            grade['money'] = int(float(datas[idx+1].text.replace(',','')))
+
+            history['grades'].append(grade)
+
+        historys.append(history)
+    return historys
 
 def get_history(_type, count=30):
     if _type in ['双色球', '七乐彩', '3D']:
