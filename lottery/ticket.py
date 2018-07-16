@@ -68,6 +68,8 @@ def _get_cwl_history(_type, count=30):
             red = [int(r) for r in one['red'].split(',')]
             history['result'] = red
 
+        history['total'] = int(int(one['sales'])/2)
+
         history['grades'] = []
         for prizegrade in one['prizegrades']:
             grade = {}
@@ -117,20 +119,26 @@ def _get_lottery_history(_type, count=30):
             history['result'] = [int(i) for i in datas[1].text]
             grades_start = 2
             grades_end = -4
+            sales = -3
         elif  name[_type] is 'dlt':
             red = [int(r.text) for r in datas[1:6]]
             blue = [int(b.text) for b in datas[6:8]]
             history['result'] = {'red': red, 'blue': blue}
             grades_start = 8
             grades_end = -4
+            sales = -3
         elif  name[_type] is 'plw':
             history['result'] = [int(i) for i in datas[1].text.split()]
             grades_start = 2
             grades_end = -4
+            sales = -3
         elif  name[_type] is 'pls':
             history['result'] = [int(i) for i in datas[1].text.split()]
             grades_start = 2
             grades_end = -3
+            sales = -2
+
+        history['total'] = int(int(datas[sales].text.replace(',',''))/2)
 
         history['grades'] = []
         for idx in range(grades_start, grades_start+len(datas[grades_start:grades_end]), 2):
