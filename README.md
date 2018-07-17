@@ -44,3 +44,6 @@ Type "help", "copyright", "credits" or "license" for more information.
     }
 ]
 ```
+
+## 期望值图表
+![exp_vaule](./doc/images/exp_value.png)
