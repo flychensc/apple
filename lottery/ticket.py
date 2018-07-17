@@ -80,6 +80,10 @@ def _get_cwl_history(_type, count=30):
 
             try:
                 grade['money'] = int(prizegrade['typemoney'])
+
+                if name[_type] is '3d' and grade['num'] !=0:
+                    grade['money'] = int(grade['money']/grade['num'])
+
             except ValueError:
                 grade['money'] = 0
 
