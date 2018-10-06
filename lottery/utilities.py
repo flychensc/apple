@@ -1,6 +1,8 @@
 """
 expected_value 计算彩票期望值
+similar 计算相似度，【排列】判断对于位的数值相同与否。【组合】判断每个颜色相同的数值数量。
 """
+from numpy import mean
 
 
 def _expected_value(his_one):
@@ -11,6 +13,36 @@ def expected_value(history):
         return [(one['date'], _expected_value(one)) for one in history]
     else:
         return [(history['date'], _expected_value(history))]
+
+def _similar(data, sample):
+    if type(sample) is list:
+        matched = 0
+        size = len(sample)
+        for p in range(size):
+            if data[p] == sample[p]:
+                matched += 1
+        return matched/size
+    elif type(sample) is dict:
+        matched = 0
+        size = 0
+        for k, v in sample.items():
+            if type(v) is list:
+                size += len(v)
+                for d in data[k]:
+                    if d in v:
+                        matched += 1
+            else:
+                size += 1
+                if v == data[k]:
+                    matched += 1
+        return matched/size
+
+def similar(data, samples):
+    if type(samples) is list:
+        values = [_similar(data, sample) for sample in samples]
+    else:
+        values = [_similar(data, samples)]
+    return round(mean(values), 4)
 
 
 if __name__ == "__main__":
