@@ -36,9 +36,11 @@ def _rand_select_dict(results):
     result = {}
     for position, (sequence, size) in pools.items():
         random.shuffle(sequence)
-        result.setdefault(position, list())
         if size != 1:
-            result[position] = random.choices(sequence, k=size)
+            while 1:
+                result[position] = random.choices(sequence, k=size)
+                if len(result[position]) == len(set(result[position])):
+                    break
         else:
             result[position] = random.choice(sequence)
 
