@@ -1,6 +1,6 @@
 """
 机选，
-从以往count期结果里，随机times次抽选号码，选择相似度最低的那份
+从以往count期结果里，随机k个抽选号码，随机选择一份
 """
 import random
 
@@ -44,7 +44,7 @@ def _rand_select_dict(results):
 
     return result
 
-def rand_select(code, count=30, times=10):
+def rand_select(code, count=30, k=10):
     _select_func = {
         '七星彩': _rand_select_list,
         '大乐透': _rand_select_dict,
@@ -54,21 +54,30 @@ def rand_select(code, count=30, times=10):
         '七乐彩': _rand_select_dict,
         '3D': _rand_select_list,
     }
+    _ref_range = {
+        '七星彩': (5, 14),
+        '大乐透': (12, 18),
+        '排列五': (6, 12),
+        '排列三': (4, 16),
+        '双色球': (12, 20),
+        '七乐彩': (16, 24),
+        '3D': (5, 15),
+    }
     # get history
     historys = get_history(code, count)
     # only result
     results = [history['result'] for history in historys]
     # random selection
-    similarity_degree = 1
-    selected = None
-    for _i in range(times):
+    (s_min, s_max) = _ref_range[code]
+    rs = []
+    while 1:
         r = _select_func[code](results)
         s = similar(r, results)
-        if s < similarity_degree:
-            selected = r
-            similarity_degree = s
-    return (selected, similarity_degree)
-
+        if s_min < s*100 < s_max:
+            rs.append((r, s))
+        if len(rs) == k:
+            break
+    return random.choice(rs)
 
 if __name__ == "__main__":
     codes = ['双色球', '七乐彩', '3D', '大乐透', '排列三', '排列五', '七星彩']
