@@ -47,3 +47,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 ## 期望值图表
 ![exp_vaule](./doc/images/exp_value.png)
+
+
+## 相似度图表
+![sim_value](./doc/images/sim_value.png)
