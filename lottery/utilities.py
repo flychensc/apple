@@ -102,7 +102,9 @@ def iter_history(code, handler, count=30, period=30):
         latest = history[idx]
         past = history[idx+1:idx+1+count]
         idx += 1
-        out.append(handler(code, latest, past))
+        ret = handler(code, latest, past)
+        if ret:
+            out.append(ret)
     return out
 
 
