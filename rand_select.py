@@ -4,7 +4,7 @@
 """
 import random
 
-from lottery import get_history, similar
+from lottery import get_history, similar, is_winning, iter_history
 
 
 def _rand_select_list(results):
@@ -46,7 +46,7 @@ def _rand_select_dict(results):
 
     return result
 
-def rand_select(code, count=30, k=10):
+def _rand_select(code, historys, k=10):
     _select_func = {
         '七星彩': _rand_select_list,
         '大乐透': _rand_select_dict,
@@ -65,8 +65,6 @@ def rand_select(code, count=30, k=10):
         '七乐彩': (16, 24),
         '3D': (5, 15),
     }
-    # get history
-    historys = get_history(code, count)
     # only result
     results = [history['result'] for history in historys]
     # random selection
@@ -81,8 +79,24 @@ def rand_select(code, count=30, k=10):
             break
     return random.choice(rs)
 
+def rand_select(code, count=30):
+    # get history
+    historys = get_history(code, count)
+    one = _rand_select(code, historys)
+    print("{0}\r\n  {1}\r\n  {2:.2f}%\r\n".format(code, one[0], one[1]*100))
+
+def test_rand_select(code, count=30):
+    def _handler(code, latest, past):
+        my = _rand_select(code, past)[0]
+        result = latest['result']
+        if is_winning(code, my, result):
+            return my
+    period = 70
+    out = iter_history(code, _handler, count, period)
+    probability = len(out)/period
+    print("{0}概率为{1:.2f}%".format(code, probability*100))
+
 if __name__ == "__main__":
-    codes = ['双色球', '七乐彩', '3D', '大乐透', '排列三', '排列五', '七星彩']
+    codes = ['双色球', '排列三', '排列五', '七星彩']
     for code in codes:
-        one = rand_select(code)
-        print("{0}\r\n  {1}\r\n  {2:.2f}%\r\n".format(code, one[0], one[1]*100))
+        test_rand_select(code)

@@ -96,6 +96,7 @@ def is_winning(code, my, result):
 
 def iter_history(code, handler, count=30, period=30):
     history = get_history(code, count+period)
+    assert(len(history) == (count+period))
     out = list()
     idx = 0
     while idx < period:
