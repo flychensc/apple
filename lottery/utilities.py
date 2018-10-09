@@ -46,6 +46,54 @@ def similar(data, samples):
         values = [_similar(data, samples)]
     return round(mean(values), 4)
 
+def _is_permutation_winning(my, result, count):
+    s, e = 0, count #逐个切片
+    while e <= len(result):
+        if my[s:e] == result[s:e]:
+            return True
+        s += 1
+        e += 1
+    return False
+
+def _is_combination_winning(my, result, count):
+    check = set(result)
+    for m in my:
+        check.add(m)
+    if (len(check) - len(result)) == (len(result) - count):
+        return True
+    return False
+
+def is_winning(code, my, result):
+    if code in ['排列五', '排列三']:
+        return my == result
+    if code in ['七星彩']:
+        if _is_permutation_winning(my, result, 7):
+            return True
+        if _is_permutation_winning(my, result, 6):
+            return True
+        if _is_permutation_winning(my, result, 5):
+            return True
+        if _is_permutation_winning(my, result, 4):
+            return True
+        if _is_permutation_winning(my, result, 3):
+            return True
+        if _is_permutation_winning(my, result, 2):
+            return True
+    if code in ['双色球']:
+        if my['blue'] == result['blue'] and _is_combination_winning(my['red'], result['red'], 6):
+            return True
+        if _is_combination_winning(my['red'], result['red'], 6):
+            return True
+        if my['blue'] == result['blue'] and _is_combination_winning(my['red'], result['red'], 5):
+            return True
+        if my['blue'] == result['blue'] and _is_combination_winning(my['red'], result['red'], 4) or _is_combination_winning(my['red'], result['red'], 5):
+            return True
+        if my['blue'] == result['blue'] and _is_combination_winning(my['red'], result['red'], 3) or _is_combination_winning(my['red'], result['red'], 4):
+            return True
+        if my['blue'] == result['blue']:
+            return True
+    return False
+
 def iter_history(code, handler, count=30, period=30):
     history = get_history(code, count+period)
     out = list()
