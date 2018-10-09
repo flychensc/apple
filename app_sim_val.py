@@ -5,7 +5,7 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 
-from lottery import get_history, similar
+from lottery import get_history, similar, iter_history
 
 codes = ['双色球', '七乐彩', '3D', '大乐透', '排列三', '排列五', '七星彩']
 count = 30
@@ -20,12 +20,12 @@ for c in codes:
         continue
     sim = []
     date = []
-    idx = 0
-    while idx < count:
-        results = [one['result'] for one in his[idx+1:idx+1+count]]
-        sim.append(similar(his[idx]['result'], results)*100)
-        date.append(his[idx]['date'])
-        idx += 1
+
+    def _collecter(code, latest, past):
+        sim.append(similar(latest['result'], [one['result'] for one in past])*100)
+        date.append(latest['date'])
+
+    iter_history(c, _collecter)
 
     data={'type':'line', 'name':c}
     data['x'] = date

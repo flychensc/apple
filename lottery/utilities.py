@@ -4,6 +4,8 @@ similar 计算相似度，【排列】判断对于位的数值相同与否。【
 """
 from numpy import mean
 
+from lottery import get_history
+
 
 def _expected_value(his_one):
     return sum([grade['money']*(grade['num']/his_one['total']) for grade in his_one['grades']])
@@ -43,6 +45,17 @@ def similar(data, samples):
     else:
         values = [_similar(data, samples)]
     return round(mean(values), 4)
+
+def iter_history(code, handler, count=30, period=30):
+    history = get_history(code, count+period)
+    out = list()
+    idx = 0
+    while idx < period:
+        latest = history[idx]
+        past = history[idx+1:idx+1+count]
+        idx += 1
+        out.append(handler(code, latest, past))
+    return out
 
 
 if __name__ == "__main__":
