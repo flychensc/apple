@@ -56,15 +56,15 @@ def _get_cwl_history(_type, count=30):
     for one in r.json()['result']:
         history = {'date': _str2date(one['date'][:10], '%Y-%m-%d')}
 
-        if name[_type] is 'ssq':
+        if name[_type] == 'ssq':
             red = [int(r) for r in one['red'].split(',')]
             blue = int(one['blue'])
             history['result'] = {'red': red, 'blue': blue}
-        elif  name[_type] is 'qlc':
+        elif  name[_type] == 'qlc':
             red = [int(r) for r in one['red'].split(',')]
             blue = int(one['blue'])
             history['result'] = {'red': red, 'blue': blue}
-        elif  name[_type] is '3d':
+        elif  name[_type] == '3d':
             red = [int(r) for r in one['red'].split(',')]
             history['result'] = red
 
@@ -81,7 +81,7 @@ def _get_cwl_history(_type, count=30):
             try:
                 grade['money'] = int(prizegrade['typemoney'])
 
-                if name[_type] is '3d' and grade['num'] !=0:
+                if name[_type] == '3d' and grade['num'] !=0:
                     grade['money'] = int(grade['money']/grade['num'])
 
             except ValueError:
@@ -119,24 +119,24 @@ def _get_lottery_history(_type, count=30):
 
         history = {'date': _str2date(datas[-1].text, '%Y-%m-%d')}
 
-        if name[_type] is 'qxc':
+        if name[_type] == 'qxc':
             history['result'] = [int(i) for i in datas[1].text]
             grades_start = 2
             grades_end = -4
             sales = -3
-        elif  name[_type] is 'dlt':
+        elif  name[_type] == 'dlt':
             red = [int(r.text) for r in datas[1:6]]
             blue = [int(b.text) for b in datas[6:8]]
             history['result'] = {'red': red, 'blue': blue}
             grades_start = 8
             grades_end = -4
             sales = -3
-        elif  name[_type] is 'plw':
+        elif  name[_type] == 'plw':
             history['result'] = [int(i) for i in datas[1].text.split()]
             grades_start = 2
             grades_end = -4
             sales = -3
-        elif  name[_type] is 'pls':
+        elif  name[_type] == 'pls':
             history['result'] = [int(i) for i in datas[1].text.split()]
             grades_start = 2
             grades_end = -3
