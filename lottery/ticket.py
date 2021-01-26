@@ -94,66 +94,56 @@ def _get_cwl_history(_type, count=30):
     return historys
 
 def _get_lottery_history(_type, count=30):
-    name = {'七星彩':'qxc', '大乐透':'dlt', '排列五':'plw', '排列三':'pls'}
+    name = {'七星彩':'04', '大乐透':'85', '排列五':'350133', '排列三':'35'}
     if _type not in name:
         raise ValueError
 
-    payload = {'_ltype': name[_type], 'page':'false', 'startTerm':'', 'endTerm':''}
+    payload = {'gameNo': name[_type], 'provinceId':'0'}
 
     if count:
-        payload["termNum"] = count
+        payload["pageSize"] = count
     else:
-        payload["termNum"] = 30
+        payload["pageSize"] = 30
 
-    url = 'http://www.lottery.gov.cn/historykj/history.jspx'
+    """
+GET https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry?gameNo=04&provinceId=0&pageSize=30&isVerify=1&pageNo=1 HTTP/1.1
+Host: webapi.sporttery.cn
+Connection: keep-alive
+Accept: application/json, text/javascript, */*; q=0.01
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36 Edg/88.0.705.50
+Origin: https://static.sporttery.cn
+Sec-Fetch-Site: same-site
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: https://static.sporttery.cn/
+Accept-Encoding: gzip, deflate, br
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
+    """
+    url = 'https://webapi.sporttery.cn/gateway/lottery/getHistoryPageListV1.qry'
     r = requests.get(url=url, params=payload)
-
-    soup = BeautifulSoup(r.text, 'lxml')
-    result = soup.find('div', 'result')
+    result = r.json()
 
     historys = []
-    for one in result.find_all('tr'):
-        datas = one.find_all('td')
-        if datas is None or len(datas) < 3:
-            continue
+    if result['errorCode'] == '0':
+        for data in result['value']['list']:
+            history = {'date': data['lotteryDrawTime']}
+            if _type == '大乐透':
+                num_result = [int(i) for i in data['lotteryDrawResult'].split()]
+                red = num_result[:-2]
+                blue = num_result[-2:]
+                history['result'] = {'red': red, 'blue': blue}
+            else:
+                history['result'] = [int(i) for i in data['lotteryDrawResult'].split()]
+            history['total'] = int(int(data['totalSaleAmount'].replace(",",""))/2)
+            history['grades'] = []
+            for prizeLevel in data['prizeLevelList']:
+                grade = {}
 
-        history = {'date': _str2date(datas[-1].text, '%Y-%m-%d')}
+                grade['num'] = int(prizeLevel['stakeCount'].replace(",",""))
+                grade['money'] = int(float(prizeLevel['stakeAmount'].replace(",","")))
 
-        if name[_type] == 'qxc':
-            history['result'] = [int(i) for i in datas[1].text]
-            grades_start = 2
-            grades_end = -4
-            sales = -3
-        elif  name[_type] == 'dlt':
-            red = [int(r.text) for r in datas[1:6]]
-            blue = [int(b.text) for b in datas[6:8]]
-            history['result'] = {'red': red, 'blue': blue}
-            grades_start = 8
-            grades_end = -4
-            sales = -3
-        elif  name[_type] == 'plw':
-            history['result'] = [int(i) for i in datas[1].text.split()]
-            grades_start = 2
-            grades_end = -4
-            sales = -3
-        elif  name[_type] == 'pls':
-            history['result'] = [int(i) for i in datas[1].text.split()]
-            grades_start = 2
-            grades_end = -3
-            sales = -2
-
-        history['total'] = int(int(datas[sales].text.replace(',',''))/2)
-
-        history['grades'] = []
-        for idx in range(grades_start, grades_start+len(datas[grades_start:grades_end]), 2):
-            grade = {}
-
-            grade['num'] = int(datas[idx].text.replace(',',''))
-            grade['money'] = int(float(datas[idx+1].text.replace(',','')))
-
-            history['grades'].append(grade)
-
-        historys.append(history)
+                history['grades'].append(grade)
+            historys.append(history)
     return historys
 
 def get_history(_type, count=30):
