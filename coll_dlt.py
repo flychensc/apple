@@ -3,7 +3,7 @@
 """
 
 from lottery import get_history
-from pandas import DataFrame
+import pandas as pd
 
 
 def _calc_prob(num, datas):
@@ -68,9 +68,15 @@ if __name__ == '__main__':
     code = '大乐透'
     count = 250
     historys = get_history(code, count)
-    data1 = calc_blue(historys)
-    df1 = DataFrame.from_dict(data1, orient='index')
-    df1.to_excel("大乐透.xls", sheet_name="蓝球")
-    data2 = calc_red(historys)
-    df2 = DataFrame.from_dict(data2, orient='index')
-    df1.to_excel("大乐透.xls", sheet_name="红球")
+
+    cols = ["近%d期" % i for i in range(len(historys),0,-1)]
+
+    data1 = calc_red(historys)
+    df1 = pd.DataFrame.from_dict(data1, orient='index', columns=cols)
+
+    data2 = calc_blue(historys)
+    df2 = pd.DataFrame.from_dict(data2, orient='index', columns=cols)
+
+    with pd.ExcelWriter('大乐透.xlsx') as writer:
+        df1.to_excel(writer, sheet_name="红球")
+        df2.to_excel(writer, sheet_name="蓝球")
