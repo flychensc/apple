@@ -131,6 +131,24 @@ def is_winning(code, my, result):
     return False
 
 def iter_history(code, handler, count=30, period=30):
+    """判断是否中奖
+    code: 彩票类别
+    handler: 处理函数
+    count: 每个待处理数据的数量
+    period: 处理多长时间的数据
+    e.g.:
+        historys = [[1,2],[1,3],[2,3],[2,4],[3,5],[4,5]]
+        count = 3, period = 2
+        1st:
+            latest = [1,2]
+            past = [[1,3],[2,3],[2,4]]
+        2nd:
+            latest = [1,3]
+            past = [[2,3],[2,4],[3,5]]
+        3rd:
+            latest = [2,3]
+            past = [[2,4],[3,5],[4,5]]
+    """
     history = get_history(code, count+period)
     assert(len(history) == (count+period))
     out = list()
