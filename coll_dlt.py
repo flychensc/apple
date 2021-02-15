@@ -10,8 +10,10 @@ import dash_core_components as dcc
 
 
 CODE = '大乐透'
-COUNT = 250
-MIN = 50
+RED_MIN = 1
+BLUE_MIN = 1
+
+COUNT = 200
 
 def _calc_prob(num, datas):
     """
@@ -25,7 +27,8 @@ def _calc_prob(num, datas):
     for data in datas:
         if num in data:
             match += 1
-    return match/len(datas)
+    # match/len(datas)
+    return round(match/len(datas)*100)
 
 def calc_red(historys):
     """
@@ -42,7 +45,7 @@ def calc_red(historys):
         # result.setdefault(num, [])
         prob_list = list()
         size = len(reds)
-        while size >= MIN:
+        while size >= RED_MIN:
             prob_list.append(_calc_prob(num, reds[:size]))
             size -= 1
         result[num] = prob_list
@@ -64,7 +67,7 @@ def calc_blue(historys):
         # result.setdefault(num, [])
         prob_list = list()
         size = len(blues)
-        while size >= MIN:
+        while size >= BLUE_MIN:
             prob_list.append(_calc_prob(num, blues[:size]))
             size -= 1
         result[num] = prob_list
@@ -72,13 +75,13 @@ def calc_blue(historys):
 
 
 def gen_xls(historys):
-    cols = ["近%d期" % i for i in range(len(historys), MIN-1, -1)]
-
+    cols1 = ["近%d期" % i for i in range(len(historys), RED_MIN-1, -1)]
     data1 = calc_red(historys)
-    df1 = pd.DataFrame.from_dict(data1, orient='index', columns=cols)
+    df1 = pd.DataFrame.from_dict(data1, orient='index', columns=cols1)
 
+    cols2 = ["近%d期" % i for i in range(len(historys), BLUE_MIN-1, -1)]
     data2 = calc_blue(historys)
-    df2 = pd.DataFrame.from_dict(data2, orient='index', columns=cols)
+    df2 = pd.DataFrame.from_dict(data2, orient='index', columns=cols2)
 
     with pd.ExcelWriter('大乐透.xlsx') as writer:
         df1.to_excel(writer, sheet_name="红球")
@@ -86,31 +89,29 @@ def gen_xls(historys):
 
 
 def gen_html(historys):
-    cols = ["近%d期" % i for i in range(len(historys), MIN-1, -1)]
-
+    cols1 = ["近%d期" % i for i in range(len(historys), RED_MIN-1, -1)]
     datas1 = []
     for k,v in calc_red(historys).items():
         data={'type':'line', 'name':k}
-        data['x'] = cols
+        data['x'] = cols1
         data['y'] = v
 
         datas1.append(data)
 
+    cols2 = ["近%d期" % i for i in range(len(historys), BLUE_MIN-1, -1)]
     datas2 = []
     for k,v in calc_blue(historys).items():
         data={'type':'line', 'name':k}
-        data['x'] = cols
+        data['x'] = cols2
         data['y'] = v
 
         datas2.append(data)
 
     app = dash.Dash()
     app.layout = html.Div(children=[
-        html.H1(children='大乐透数学期望分析'),
+        html.H1(children='大乐透分析'),
 
-        html.Div(children='''
-                近%d+%d期数据
-            ''' % (COUNT, MIN)),
+        html.Div(children='数学期望值趋势'),
 
         dcc.Graph(
                 id='red-exp-val-graph',
@@ -137,6 +138,6 @@ def gen_html(historys):
 
 
 if __name__ == '__main__':
-    historys = get_history(CODE, COUNT + MIN)
+    historys = get_history(CODE, COUNT)
     #gen_xls(historys)
     gen_html(historys)
