@@ -4,7 +4,14 @@
 
 from lottery import get_history
 import pandas as pd
+import dash
+import dash_html_components as html
+import dash_core_components as dcc
 
+
+CODE = '大乐透'
+COUNT = 250
+MIN = 50
 
 def _calc_prob(num, datas):
     """
@@ -35,7 +42,7 @@ def calc_red(historys):
         # result.setdefault(num, [])
         prob_list = list()
         size = len(reds)
-        while size > 0:
+        while size >= MIN:
             prob_list.append(_calc_prob(num, reds[:size]))
             size -= 1
         result[num] = prob_list
@@ -57,19 +64,15 @@ def calc_blue(historys):
         # result.setdefault(num, [])
         prob_list = list()
         size = len(blues)
-        while size > 0:
+        while size >= MIN:
             prob_list.append(_calc_prob(num, blues[:size]))
             size -= 1
         result[num] = prob_list
     return result
 
 
-if __name__ == '__main__':
-    code = '大乐透'
-    count = 250
-    historys = get_history(code, count)
-
-    cols = ["近%d期" % i for i in range(len(historys),0,-1)]
+def gen_xls(historys):
+    cols = ["近%d期" % i for i in range(len(historys), MIN-1, -1)]
 
     data1 = calc_red(historys)
     df1 = pd.DataFrame.from_dict(data1, orient='index', columns=cols)
@@ -80,3 +83,60 @@ if __name__ == '__main__':
     with pd.ExcelWriter('大乐透.xlsx') as writer:
         df1.to_excel(writer, sheet_name="红球")
         df2.to_excel(writer, sheet_name="蓝球")
+
+
+def gen_html(historys):
+    cols = ["近%d期" % i for i in range(len(historys), MIN-1, -1)]
+
+    datas1 = []
+    for k,v in calc_red(historys).items():
+        data={'type':'line', 'name':k}
+        data['x'] = cols
+        data['y'] = v
+
+        datas1.append(data)
+
+    datas2 = []
+    for k,v in calc_blue(historys).items():
+        data={'type':'line', 'name':k}
+        data['x'] = cols
+        data['y'] = v
+
+        datas2.append(data)
+
+    app = dash.Dash()
+    app.layout = html.Div(children=[
+        html.H1(children='大乐透数学期望分析'),
+
+        html.Div(children='''
+                近%d+%d期数据
+            ''' % (COUNT, MIN)),
+
+        dcc.Graph(
+                id='red-exp-val-graph',
+                figure={
+                    'data':datas1,
+                    'layout':{
+                        'title':'红球趋势'
+                    }
+                }
+            ),
+
+        dcc.Graph(
+                id='blue-exp-val-graph',
+                figure={
+                    'data':datas2,
+                    'layout':{
+                        'title':'蓝球趋势'
+                    }
+                }
+            ),
+    ])
+
+    app.run_server(debug=True)
+
+
+if __name__ == '__main__':
+    historys = get_history(CODE, COUNT + MIN)
+    #gen_xls(historys)
+    gen_html(historys)
