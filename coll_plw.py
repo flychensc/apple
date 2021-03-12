@@ -74,11 +74,11 @@ def gen_html(historys):
             datas.append(data)
 
         children.append(dcc.Graph(
-                id='red-exp-val-graph',
+                id=f'{loc}-exp-val-graph',
                 figure={
                     'data':datas,
                     'layout':{
-                        'title':f'第loc位趋势'
+                        'title':f'第{loc}位趋势'
                     }
                 }
             ))
@@ -91,5 +91,5 @@ def gen_html(historys):
 
 if __name__ == '__main__':
     historys = get_history(CODE, COUNT)
-    gen_xls(historys)
-    #gen_html(historys)
+    #gen_xls(historys)
+    gen_html(historys)
