@@ -1,6 +1,6 @@
 dash==0.31.1
 dash_core_components==0.40.2
-requests==2.20.1
+requests==2.31.0
 numpy==1.14.3
 dash_html_components==0.13.2
 beautifulsoup4==4.6.3
